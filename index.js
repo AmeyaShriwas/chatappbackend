@@ -4,11 +4,13 @@ const dotenv = require('dotenv');
 const UserRoutes = require('./Routes/UserRoutes');
 const bodyParser = require('body-parser');
 const path = require('path');
+const cors = require('cors')
 
 dotenv.config();
 
 const app = express();
 
+app.use(cors({origin: '*'}))
 // Middleware
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
