@@ -12,7 +12,7 @@ const app = express();
 
 // Allow requests from your frontend domain
 app.use(cors({
-  origin: 'https://chatweb.ameyashriwas.com', // or '*', if you want to allow all domains
+  origin: '*', // or '*', if you want to allow all domains
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow methods as needed
 }));
 
