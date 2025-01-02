@@ -1,3 +1,4 @@
+const { response } = require("express");
 const authService = require("../Services/authService");
 
 const signUpUser = async (req, res) => {
@@ -40,18 +41,28 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const { data, accessToken, refreshToken, error } = await authService.loginUser(email, password, process.env.JWT_SECRET, process.env.REFRESH_TOKEN, "1h");
+    // Call the auth service for login
+    const response = await authService.loginUser(
+      email,
+      password,
+      process.env.JWT_SECRET,
+      process.env.REFRESH_TOKEN
+    );
 
-    if (error) {
-      return res.status(400).json({ error });
+    // Check if login was unsuccessful
+    if (!response.status) {
+      return res.status(400).json({ error: response.message });
     }
 
-    res.status(200).json({ message: 'login successful', accessToken, refreshToken, data });
+    // Successful login
+    return res.status(200).json(response);
   } catch (error) {
+    // Handle unexpected errors
     console.error('Login error:', error.message);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;

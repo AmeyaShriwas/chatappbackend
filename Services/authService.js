@@ -58,30 +58,55 @@ const verifyUserOtp = async (email, otp) => {
   return false;
 };
 
-// Log in user
-const loginUser = async (email, password, secret,refreshSecret, expiresIn) => {
+const loginUser = async (email, password, secret, refreshSecret) => {
   try {
+    // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return { error: "Invalid login credentials" };
-    }
-    if (!user.isVerified) {
-      throw new Error('User is not verified');
+      return { 
+        status: false, 
+        message: "Invalid login credentials" 
+      };
     }
 
+    // Check if the user's account is verified
+    if (!user.isVerified) {
+      return { 
+        status: false, 
+        message: "User is not verified" 
+      };
+    }
+
+    // Validate the provided password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return { error: "Invalid login credentials" };
+      return { 
+        status: false, 
+        message: "Invalid login credentials" 
+      };
     }
 
+    // Generate access and refresh tokens
     const accessToken = jwt.sign({ _id: user._id.toString() }, secret, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ _id: user._id.toString() }, refreshSecret, { expiresIn: '7d' });
-    const data = {name: user.name}
-    return {message: 'login successful', accessToken, refreshToken, data};
+
+    // Return successful response
+    return {
+      status: true,
+      name: user.name,
+      message: 'Login successful',
+      accessToken,
+      refreshToken,
+    };
   } catch (error) {
-    throw new Error(error.message);
+    // Return error response
+    return {
+      status: false,
+      message: error.message || "An error occurred during login",
+    };
   }
 };
+
 
 // Update OTP for user
 const updateOtpForUser = async (user, otp) => {
