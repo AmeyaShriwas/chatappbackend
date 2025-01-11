@@ -70,13 +70,13 @@ const forgotPassword = async (req, res) => {
   try {
     const user = await authService.findUserByEmail(email);
     if (!user) {
-      return res.status(400).json({ message: "User with this email does not exist" });
+      return res.status(400).json({ status: false, message: "User with this email does not exist" });
     }
 
     const otp = authService.generateOTP();
     await authService.updateOtpForUser(user, otp);
 
-    res.send({ message: "OTP sent to email" });
+    res.send({ status: true, message: "OTP sent to email" });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -99,11 +99,11 @@ const resetPassword = async (req, res) => {
 
     const isValidOtp = await authService.verifyUserOtp(email, otp);
     if (!isValidOtp) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ status: false, message: "Invalid OTP" });
     }
 
     await authService.updateUserPassword(user, newPassword);
-    res.status(200).json({ message: "Password reset successfully" });
+    res.status(200).json({ status: true, message: "Password reset successfully" });
   } catch (error) {
     res.status(500).send(error);
   }
