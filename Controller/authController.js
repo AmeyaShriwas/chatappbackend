@@ -69,7 +69,7 @@ const forgotPassword = async (req, res) => {
 
   try {
     const user = await authService.findUserByEmail(email);
-    
+     console.log('user', user)
     if (!user) {
       return res.status(400).json({ status: false, message: "User with this email does not exist" });
     }
