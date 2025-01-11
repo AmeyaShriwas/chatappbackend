@@ -8,7 +8,7 @@ const signUpUser = async (req, res) => {
     const existingUser = await authService.findUserByEmail(email);
     if (existingUser) {
       console.log('existing user', existingUser)
-      return res.status(400).json({ success: false, message: "User already exists" });
+      return res.status(400).json({ status: false, success: false, message: "User already exists" });
     }
     console.log('user not found we can proceed')
 
@@ -26,9 +26,9 @@ const verifyOtp = async (req, res) => {
   try {
     const isValid = await authService.verifyUserOtp(email, otp);
     if (!isValid) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ status: false, message: "Invalid OTP" });
     } else {
-      res.status(200).json({ message: "OTP verified successfully" });
+      res.status(200).json({status: true,  message: "OTP verified successfully" });
     }
   } catch (error) {
     console.log('Error in verifyOtp:', error.message);
@@ -51,7 +51,7 @@ const loginUser = async (req, res) => {
 
     // Check if login was unsuccessful
     if (!response.status) {
-      return res.status(400).json({ error: response.message });
+      return res.status(400).json({ status: false, error: response.message });
     }
 
     // Successful login
