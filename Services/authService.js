@@ -25,6 +25,7 @@ const sendOtpEmail = async(email, otp)=> {
 
 // Find user by email
 const findUserByEmail = async (email) => {
+  console.log('email', email)
   return await User.findOne({ email });
 };
 
