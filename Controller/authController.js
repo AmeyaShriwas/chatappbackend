@@ -13,7 +13,7 @@ const signUpUser = async (req, res) => {
     console.log('user not found we can proceed')
 
     const result = await authService.createUser(name, email, password, number);
-    res.status(201).json({ success: true, message: result.message });
+    res.status(201).json({ status: true, message: result.message });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -95,7 +95,7 @@ const resetPassword = async (req, res) => {
   try {
     const user = await authService.findUserByEmail(email);
     if (!user) {
-      return res.status(400).json({ message: "User with this email does not exist" });
+      return res.status(400).json({ status: false, message: "User with this email does not exist" });
     }
 
     const isValidOtp = await authService.verifyUserOtp(email, otp);
@@ -114,11 +114,11 @@ const refreshToken = async (req, res) => {
   try {
     const { token } = req.body; // Get the refresh token from the request body
     if (!token) {
-      return res.status(400).json({ error: "Refresh token is required" });
+      return res.status(400).json({status: false, error: "Refresh token is required" });
     }
 
     const newAccessToken = await authService.generateNewAccessToken(token);
-    res.status(200).json({ message: "New access token generated", accessToken: newAccessToken });
+    res.status(200).json({stutus: true,  message: "New access token generated", accessToken: newAccessToken });
   } catch (error) {
     res.status(401).json({ error: error.message });
   }
