@@ -14,7 +14,7 @@ cron.schedule('* * * * *', async () => {
     const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000); // 10 minutes ago
 
     const result = await User.deleteMany({
-      verified: false, // Only unverified users
+      isVerified: false, // Only unverified users
       createdAt: { $lte: tenMinutesAgo }, // Older than 10 minutes
     });
 
