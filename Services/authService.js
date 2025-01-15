@@ -4,6 +4,27 @@ const bcrypt = require('bcryptjs');
 const User = require("../Models/UserModel");
 const jwt = require('jsonwebtoken');
 const Transporter = require('./../config')
+const cron = require('node-cron')
+
+
+//cron run to delete unverified user
+cron.schedule('* * * * *', async () => {
+  try {
+    const now = new Date();
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000); // 10 minutes ago
+
+    const result = await User.deleteMany({
+      verified: false, // Only unverified users
+      createdAt: { $lte: tenMinutesAgo }, // Older than 10 minutes
+    });
+
+    if (result.deletedCount > 0) {
+      console.log(`${result.deletedCount} unverified users deleted`);
+    }
+  } catch (error) {
+    console.error('Error deleting unverified users:', error.message);
+  }
+});
 
 // Generate OTP
 const generateOTP = () => {

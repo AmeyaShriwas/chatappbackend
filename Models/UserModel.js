@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     resetTokenExpiry: { type: Date, required: false },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: { type: String, default: "" },
+    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt
 );
