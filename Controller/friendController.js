@@ -1,9 +1,20 @@
 const {
     addFriendService,
     getFriendsService,
-    removeFriendService
+    removeFriendService,
+    getAllUsers
   } = require("./../Services/friendServices");
   
+
+  const getAllUser = async(req, res)=> {
+    try{
+        const result = await getAllUsers();
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(400).json({ message: error.message });
+      }
+  }
   // Controller to add a friend
   const addFriend = async (req, res) => {
     try {
@@ -40,6 +51,7 @@ const {
   module.exports = {
     addFriend,
     getFriends,
-    removeFriend
+    removeFriend,
+    getAllUser
   };
   

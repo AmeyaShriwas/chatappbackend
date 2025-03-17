@@ -1,5 +1,23 @@
 const User = require("./../Models/UserModel");
 
+
+const getAllUsers = async()=> {
+   try{
+    const allUsers = await User.find()
+    let UserList;
+    const newArr = allUsers.filter((data)=> {
+        const obj = {
+            name: data?.name,
+            id: data?._id
+        }
+        UserList.push(obj)
+    })
+    return UserList
+   }
+   catch(error){
+    return error
+   }
+}
 // Add a friend (store both ID and name)
 const addFriendService = async (userId, friendId) => {
     const user = await User.findById(userId);
@@ -22,7 +40,7 @@ const addFriendService = async (userId, friendId) => {
   
     return { message: "Friend added successfully", user };
   };
-  
+
 // Get friends list
 const getFriendsService = async (userId) => {
   const user = await User.findById(userId).populate("friends", "name email profilePicture");
@@ -55,5 +73,6 @@ const removeFriendService = async (userId, friendId) => {
 module.exports = {
   addFriendService,
   getFriendsService,
-  removeFriendService
+  removeFriendService,
+  getAllUsers
 };
