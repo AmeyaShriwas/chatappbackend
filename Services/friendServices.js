@@ -1,23 +1,23 @@
 const User = require("./../Models/UserModel");
 
 
-const getAllUsers = async()=> {
-   try{
-    const allUsers = await User.find()
-    let UserList;
-    const newArr = allUsers.filter((data)=> {
-        const obj = {
-            name: data?.name,
-            id: data?._id
-        }
-        UserList.push(obj)
-    })
-    return UserList
-   }
-   catch(error){
-    return error
-   }
-}
+const getAllUsers = async () => {
+    try {
+     const allUsers = await User.find();
+     let UserList = []; // Initialize UserList as an empty array
+     allUsers.forEach((data) => { // Use forEach instead of filter for pushing items into UserList
+         const obj = {
+             name: data?.name,
+             id: data?._id
+         };
+         UserList.push(obj); // Push the obj into UserList
+     });
+     return UserList;
+    } catch (error) {
+     return error;
+    }
+ };
+ 
 // Add a friend (store both ID and name)
 const addFriendService = async (userId, friendId) => {
     const user = await User.findById(userId);
