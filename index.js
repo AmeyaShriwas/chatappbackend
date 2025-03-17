@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const UserRoutes = require('./Routes/UserRoutes');
+const FriendRoutes = require('./Routes/friendRoutes')
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors')
@@ -30,6 +31,7 @@ mongoose.connect(process.env.MONGO_URI
 
 // Routes
 app.use('/', UserRoutes);
+app.use('/friend', FriendRoutes)
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

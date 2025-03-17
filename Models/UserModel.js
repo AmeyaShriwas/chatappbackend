@@ -15,8 +15,12 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ["user", "admin"], default: "user" },
     resetToken: { type: String, required: false },
     resetTokenExpiry: { type: Date, required: false },
-    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    status: { type: String, default: "" },
+    friends: [
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        name: { type: String }
+      }
+    ],    status: { type: String, default: "" },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt

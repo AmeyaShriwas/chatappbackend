@@ -119,6 +119,7 @@ const loginUser = async (email, password, secret, refreshSecret) => {
       message: 'Login successful',
       accessToken,
       refreshToken,
+      id: user._id
     };
   } catch (error) {
     // Return error response
