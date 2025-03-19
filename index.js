@@ -11,7 +11,6 @@ dotenv.config();
 
 const app = express();
 
-const cors = require("cors");
 
 const allowedOrigins = [
   "https://web.chatwithus.ameyashriwas.com",
