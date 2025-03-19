@@ -8,7 +8,8 @@ const getAllUsers = async () => {
      allUsers.forEach((data) => { // Use forEach instead of filter for pushing items into UserList
          const obj = {
              name: data?.name,
-             id: data?._id
+             id: data?._id,
+             image: data.profilePicture
          };
          UserList.push(obj); // Push the obj into UserList
      });
