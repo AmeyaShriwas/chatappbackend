@@ -64,19 +64,28 @@ const loginUser = async (req, res) => {
   }
 };
 
-const uploadImage = async(req, res)=> {
+const User = require('../Models/User');  // Import the User model
+
+const uploadImage = async (req, res) => {
   try {
     const { id } = req.body;  // Get user ID from request body
-    const imagePath = req.file.path;  // Path of the uploaded image
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const imagePath = `/upload/${req.file.filename}`;  // Relative path
+    console.log('User ID:', id);
+    console.log('Uploaded Image Path:', imagePath);
 
     if (!id) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Find user by ID and update the photo field
+    // Find user by ID and update the profilePicture field
     const user = await User.findByIdAndUpdate(
       id,
-      { profilePicture: imagePath },
+      { profilePicture: imagePath },   // ✅ Save relative path only
       { new: true }
     );
 
@@ -86,13 +95,15 @@ const uploadImage = async(req, res)=> {
 
     res.status(200).json({
       message: "Image uploaded successfully",
-      user,
+      profilePicture: user.profilePicture,  // ✅ Return only image path
     });
+
   } catch (error) {
     console.error("Error uploading image:", error);
     res.status(500).json({ message: "Failed to upload image" });
   }
 };
+
 
 
 
