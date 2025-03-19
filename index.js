@@ -22,11 +22,17 @@ const allowedOrigins = [
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket"]  // Enforce only WebSocket transport
+  transports: ["websocket", "polling"]  // Allow both transports
 });
 
 
@@ -40,8 +46,9 @@ io.on("connection", (socket) => {
     socket.join(roomId);
 
     try {
-      let chat = await Chat.findOne({ participants: { $all: [senderId, receiverId] } });
-
+      const chat = await Chat.findOne({
+        participants: { $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)] }
+      });
       if (!chat) {
         // Create new conversation if it doesn't exist
         chat = new Chat({
