@@ -33,8 +33,8 @@ const addFriendService = async (userId, friendId) => {
     }
   
     // Add friend to both users' lists
-    user.friends.push({ _id: friendId, name: friend.name });
-    friend.friends.push({ _id: userId, name: user.name });
+    user.friends.push({ _id: friendId, name: friend.name, image: friend.profilePicture });
+    friend.friends.push({ _id: userId, name: user.name, image: user.profilePicture });
   
     await user.save();
     await friend.save();
