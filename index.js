@@ -7,14 +7,14 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors')
 const {Server} = require('socket.io')
-const http = require('http')
+const https = require('https');
 const Chat = require('./Models/ChatModel')
 
 
 dotenv.config();
 const app = express();
 
-const server = http.createServer(app)
+const server = https.createServer(app)
 const allowedOrigins = [
   "https://web.chatwithus.ameyashriwas.com",
   "http://localhost:3000"
@@ -22,12 +22,13 @@ const allowedOrigins = [
 
 const io = new Server(server, {
   cors: {
-    origin: "https://web.chatwithus.ameyashriwas.com",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"]
+  transports: ["websocket"]  // Enforce only WebSocket transport
 });
+
 
 
 io.on("connection", (socket) => {
@@ -170,6 +171,6 @@ app.use((err, req, res, next) => {
 
 // Start Server
 const PORT = process.env.PORT || 5200;
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
