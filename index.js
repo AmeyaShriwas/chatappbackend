@@ -6,16 +6,117 @@ const FriendRoutes = require('./Routes/friendRoutes')
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors')
+const {Server} = require('socket.io')
+const http = require('http')
+const Chat = require('./Models/ChatModel')
+
 
 dotenv.config();
-
 const app = express();
 
-
+const server = http.createServer(app)
 const allowedOrigins = [
   "https://web.chatwithus.ameyashriwas.com",
   "http://localhost:3000"
 ];
+
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"]
+  }
+})
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  // Join Room
+  socket.on("joinRoom", async ({ senderId, receiverId }) => {
+    const roomId = [senderId, receiverId].sort().join("_");
+    socket.join(roomId);
+
+    try {
+      let chat = await Chat.findOne({ participants: { $all: [senderId, receiverId] } });
+
+      if (!chat) {
+        // Create new conversation if it doesn't exist
+        chat = new Chat({
+          participants: [senderId, receiverId],
+          messages: []
+        });
+        await chat.save();
+      }
+
+      socket.emit("loadMessages", chat.messages);
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    }
+  });
+
+  // Send Message
+  socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
+    const roomId = [senderId, receiverId].sort().join("_");
+
+    try {
+      let chat = await Chat.findOne({ participants: { $all: [senderId, receiverId] } });
+
+      if (!chat) {
+        // Create new chat if it doesn't exist
+        chat = new Chat({
+          participants: [senderId, receiverId],
+          messages: []
+        });
+      }
+
+      // Push message into the existing message array
+      const newMessage = {
+        senderId,
+        receiverId,
+        message
+      };
+
+      chat.messages.push(newMessage);
+      await chat.save();
+
+      // Emit message to room
+      io.to(roomId).emit("newMessage", newMessage);
+
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
+app.get("/messages", async (req, res) => {
+  const { senderId, receiverId } = req.query;
+
+  if (!senderId || !receiverId) {
+    return res.status(400).send("Both sender and receiver IDs are required.");
+  }
+
+  try {
+    const chat = await Chat.findOne({
+      participants: { $all: [senderId, receiverId] }
+    });
+
+    if (chat) {
+      res.status(200).json(chat.messages);
+    } else {
+      res.status(404).send("No conversation found");
+    }
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).send("Failed to fetch messages");
+  }
+});
+
+
+
+
 
 app.use(cors({
   origin: (origin, callback) => {
