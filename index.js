@@ -44,6 +44,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'view')));
 app.set('view engine', 'ejs');
+app.use('/upload', express.static(path.join(__dirname, 'upload')));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI
