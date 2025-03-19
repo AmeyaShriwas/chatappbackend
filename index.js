@@ -11,11 +11,34 @@ dotenv.config();
 
 const app = express();
 
-// Allow requests from your frontend domain
+const cors = require("cors");
+
+const allowedOrigins = [
+  "https://web.chatwithus.ameyashriwas.com",
+  "http://localhost:3000"
+];
+
 app.use(cors({
-  origin: ["https://web.chatwithus.ameyashriwas.com/", "http://localhost:3000/"], // or '*', if you want to allow all domains
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow methods as needed
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Include OPTIONS for preflight
+  allowedHeaders: ['Content-Type', 'Authorization'],     // Add allowed headers
+  credentials: true                                       // Allow cookies and authorization headers
 }));
+
+// Handle preflight requests globally
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 
 // Middleware
 app.use(express.json());
