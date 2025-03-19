@@ -1,5 +1,6 @@
 const { response } = require("express");
 const authService = require("../Services/authService");
+const User  = require('./../Models/UserModel')
 
 const signUpUser = async (req, res) => {
   const {name,  email, password, number } = req.body;
