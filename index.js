@@ -22,10 +22,13 @@ const allowedOrigins = [
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"]
-  }
-})
+    origin: "https://web.chatwithus.ameyashriwas.com",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"]
+});
+
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
