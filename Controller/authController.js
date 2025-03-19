@@ -64,7 +64,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-const User = require('../Models/User');  // Import the User model
 
 const uploadImage = async (req, res) => {
   try {
