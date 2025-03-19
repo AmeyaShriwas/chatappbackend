@@ -116,6 +116,8 @@ const loginUser = async (email, password, secret, refreshSecret) => {
     return {
       status: true,
       name: user.name,
+      image: user.profilePicture,
+      email: user.email,
       message: 'Login successful',
       accessToken,
       refreshToken,

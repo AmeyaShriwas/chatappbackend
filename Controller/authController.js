@@ -63,6 +63,37 @@ const loginUser = async (req, res) => {
   }
 };
 
+const uploadImage = async(req, res)=> {
+  try {
+    const { id } = req.body;  // Get user ID from request body
+    const imagePath = req.file.path;  // Path of the uploaded image
+
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Find user by ID and update the photo field
+    const user = await User.findByIdAndUpdate(
+      id,
+      { profilePicture: imagePath },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ message: "Failed to upload image" });
+  }
+};
+
+
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -124,4 +155,4 @@ const refreshToken = async (req, res) => {
   }
 };
 
-module.exports = { signUpUser, verifyOtp, loginUser, forgotPassword, resetPassword, refreshToken };
+module.exports = { signUpUser,uploadImage, verifyOtp, loginUser, forgotPassword, resetPassword, refreshToken };

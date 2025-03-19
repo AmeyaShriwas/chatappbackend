@@ -33,6 +33,7 @@ mongoose.connect(process.env.MONGO_URI
 app.use('/', UserRoutes);
 app.use('/friend', FriendRoutes)
 
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
