@@ -93,6 +93,7 @@ const uploadImage = async (req, res) => {
     }
 
     res.status(200).json({
+      status: true,
       message: "Image uploaded successfully",
       profilePicture: user.profilePicture,  // ✅ Return only image path
     });
