@@ -7,14 +7,14 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors')
 const {Server} = require('socket.io')
-const https = require('https');
+const http = require('http');
 const Chat = require('./Models/ChatModel')
 
 
 dotenv.config();
 const app = express();
 
-const server = https.createServer(app)
+const server = http.createServer(app)
 const allowedOrigins = [
   "https://web.chatwithus.ameyashriwas.com",
   "http://localhost:3000"
