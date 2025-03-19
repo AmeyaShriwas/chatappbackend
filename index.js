@@ -96,6 +96,7 @@ io.on("connection", (socket) => {
 
 app.get("/messages", async (req, res) => {
   const { senderId, receiverId } = req.query;
+  console.log('receinv or not')
 
   if (!senderId || !receiverId) {
     return res.status(400).send("Both sender and receiver IDs are required.");
