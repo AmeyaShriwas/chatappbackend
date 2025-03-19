@@ -2,55 +2,63 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const UserRoutes = require('./Routes/UserRoutes');
-const FriendRoutes = require('./Routes/friendRoutes')
+const FriendRoutes = require('./Routes/friendRoutes');
 const bodyParser = require('body-parser');
 const path = require('path');
-const cors = require('cors')
-const {Server} = require('socket.io')
+const cors = require('cors');
+const { Server } = require('socket.io');
 const http = require('http');
-const Chat = require('./Models/ChatModel')
-
+const Chat = require('./Models/ChatModel');
 
 dotenv.config();
 const app = express();
+const server = http.createServer(app);
 
-const server = http.createServer(app)
 const allowedOrigins = [
   "https://web.chatwithus.ameyashriwas.com",
   "http://localhost:3000"
 ];
 
-const io = new Server(server, {
-  cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
+// ✅ Apply CORS only once, use the same config for Socket.io and Express
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
   },
-  transports: ["websocket", "polling"]  // Allow both transports
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// ✅ Socket.io setup with same CORS config
+const io = new Server(server, {
+  cors: corsOptions,
+  transports: ["websocket", "polling"]
 });
 
-
-
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log(`✅ User connected: ${socket.id}`);
 
   // Join Room
   socket.on("joinRoom", async ({ senderId, receiverId }) => {
-    const roomId = [senderId, receiverId].sort().join("_");
-    socket.join(roomId);
-
     try {
-      const chat = await Chat.findOne({
-        participants: { $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)] }
+      const roomId = [senderId, receiverId].sort().join("_");
+      socket.join(roomId);
+
+      let chat = await Chat.findOne({
+        participants: {
+          $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)]
+        }
       });
+
       if (!chat) {
-        // Create new conversation if it doesn't exist
+        // Create new chat if not found
         chat = new Chat({
           participants: [senderId, receiverId],
           messages: []
@@ -58,9 +66,10 @@ io.on("connection", (socket) => {
         await chat.save();
       }
 
+      // Emit existing messages to the room
       socket.emit("loadMessages", chat.messages);
     } catch (error) {
-      console.error("Error loading messages:", error);
+      console.error("🔥 Error joining room:", error.message);
     }
   });
 
@@ -69,42 +78,43 @@ io.on("connection", (socket) => {
     const roomId = [senderId, receiverId].sort().join("_");
 
     try {
-      let chat = await Chat.findOne({ participants: { $all: [senderId, receiverId] } });
+      let chat = await Chat.findOne({
+        participants: {
+          $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)]
+        }
+      });
 
       if (!chat) {
-        // Create new chat if it doesn't exist
         chat = new Chat({
           participants: [senderId, receiverId],
           messages: []
         });
       }
 
-      // Push message into the existing message array
       const newMessage = {
         senderId,
         receiverId,
-        message
+        message,
+        timestamp: new Date()
       };
 
       chat.messages.push(newMessage);
       await chat.save();
 
-      // Emit message to room
       io.to(roomId).emit("newMessage", newMessage);
-
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("🔥 Error sending message:", error.message);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log(`⚠️ User disconnected: ${socket.id}`);
   });
 });
 
+// Fetch Messages API
 app.get("/messages", async (req, res) => {
   const { senderId, receiverId } = req.query;
-  console.log('receinv or not')
 
   if (!senderId || !receiverId) {
     return res.status(400).send("Both sender and receiver IDs are required.");
@@ -112,7 +122,9 @@ app.get("/messages", async (req, res) => {
 
   try {
     const chat = await Chat.findOne({
-      participants: { $all: [senderId, receiverId] }
+      participants: {
+        $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)]
+      }
     });
 
     if (chat) {
@@ -121,36 +133,10 @@ app.get("/messages", async (req, res) => {
       res.status(404).send("No conversation found");
     }
   } catch (error) {
-    console.error("Error fetching messages:", error);
+    console.error("🔥 Error fetching messages:", error.message);
     res.status(500).send("Failed to fetch messages");
   }
 });
-
-
-
-
-
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Include OPTIONS for preflight
-  allowedHeaders: ['Content-Type', 'Authorization'],     // Add allowed headers
-  credentials: true                                       // Allow cookies and authorization headers
-}));
-
-// Handle preflight requests globally
-app.options('*', cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
 
 // Middleware
 app.use(express.json());
@@ -160,24 +146,22 @@ app.set('view engine', 'ejs');
 app.use('/upload', express.static(path.join(__dirname, 'upload')));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI
-)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch(err => console.error('🔥 MongoDB connection error:', err));
 
 // Routes
 app.use('/', UserRoutes);
-app.use('/friend', FriendRoutes)
-
+app.use('/friend', FriendRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something went wrong!');
+  res.status(500).send('🔥 Something went wrong!');
 });
 
 // Start Server
 const PORT = process.env.PORT || 5200;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
