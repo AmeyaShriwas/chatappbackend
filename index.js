@@ -175,6 +175,59 @@ app.get("/messages", async (req, res) => {
   }
 });
 
+// ✅ POST API to send message
+app.post("/messages/send", async (req, res) => {
+  const { senderId, receiverId, message } = req.body;
+
+  if (!senderId || !receiverId || !message) {
+    return res.status(400).send("Sender ID, Receiver ID, and message are required.");
+  }
+
+  try {
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
+      return res.status(400).send("Invalid MongoDB ObjectId format");
+    }
+
+    // Find or create chat
+    let chat = await Chat.findOne({
+      participants: {
+        $all: [mongoose.Types.ObjectId(senderId), mongoose.Types.ObjectId(receiverId)],
+      }
+    });
+
+    if (!chat) {
+      chat = new Chat({
+        participants: [senderId, receiverId],
+        messages: []
+      });
+      await chat.save();
+    }
+
+    // Create new message object
+    const newMessage = {
+      senderId,
+      receiverId,
+      message,
+      timestamp: new Date()
+    };
+
+    // Save message to chat
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    // Emit the message to the Socket.io room
+    const roomId = [senderId, receiverId].sort().join("_");
+    io.to(roomId).emit("newMessage", newMessage);
+
+    res.status(201).json({ message: "Message sent successfully", data: newMessage });
+  } catch (error) {
+    console.error("🔥 Error sending message:", error.message);
+    res.status(500).send("Failed to send message");
+  }
+});
+
+
 // ✅ Middleware
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
