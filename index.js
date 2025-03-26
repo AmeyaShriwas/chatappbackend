@@ -144,6 +144,22 @@ io.on("connection", (socket) => {
   });
 });
 
+// ✅ CORS Middleware for All Routes
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGINS || "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+
 // ✅ Fetch Messages API
 app.get("/messages", async (req, res) => {
   const { senderId, receiverId } = req.query;
